@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="jack.domain" >
+	<class name="Order" table="orders" >
+		<id name="oid"  >
+			<generator class="uuid"></generator>
+		</id>
+		<property name="orderTime"  ></property>
+		<property name="total"  ></property>
+		<property name="state"  ></property>
+		<property name="address"  ></property>
+		<property name="name"  ></property>
+		<property name="telephone"  ></property>
+	
+		
+		<many-to-one name="user" class="jack.domain.User" column="uid"></many-to-one>
+	
+	</class>
+</hibernate-mapping>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="jack.domain" >
+	<class name="Product" table="product" >
+		<id name="pid"  >
+			<generator class="native"></generator>
+		</id>
+		<property name="pname"  ></property>
+		<property name="shop_price"  ></property>
+		<property name="pimage"  ></property>
+		<property name="pdate"  ></property>
+		<property name="is_new"  ></property>
+		<property name="is_hot"  ></property>
+		<property name="pdesc"  ></property>
+		<property name="pflag"  ></property>
+		<property name="article"  ></property>
+		<property name="published"  ></property>
+		<property name="words"  ></property>
+		
+		<many-to-one name="category" class="jack.domain.Category" column="cid"></many-to-one>
+	
+	</class>
+</hibernate-mapping>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://www.springframework.org/schema/beans"
+		  xmlns:context="http://www.springframework.org/schema/context"
+		   xmlns:aop="http://www.springframework.org/schema/aop" 
+		   xmlns:tx="http://www.springframework.org/schema/tx" 
+		   xsi:schemaLocation="http://www.springframework.org/schema/beans
+		    http://www.springframework.org/schema/beans/spring-beans-4.2.xsd 
+		    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+			http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd 
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd ">
+			
+	
+	<!-- 配置c3p0连接池，通过db.properties进行加载
+		我们有spring就不需要hibernate.cfg.xml，会统一交给spring管理 -->
+	<context:property-placeholder location="classpath:db.properties"/>
+	<bean name="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<!-- 一一映射 -->
+		<property name="jdbcUrl" value="${jdbc.jdbcUrl}"></property>
+		<property name="driverClass" value="${jdbc.driverClass}"></property>
+		<property name="user" value="${jdbc.user}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+	</bean>
+		
+	<!-- 事务：tx核心事务管理器，用于后期事务的导入 -->
+	<!-- 里面 已经包含了事务的各种处理 -->
+	<bean name="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<!-- 配置通知 
+		通知可以使用注解开发-->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager" >
+		<tx:attributes>
+			<tx:method name="save*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+			<tx:method name="persist*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+			<tx:method name="update*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+			<tx:method name="modify*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+			<tx:method name="delete*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+			<tx:method name="remove*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+			<tx:method name="get*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="true" />
+			<tx:method name="*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+		</tx:attributes>
+	</tx:advice> 
+	
+	<!-- 开启注解，可以注解设置通知 -->
+ 	<tx:annotation-driven transaction-manager="transactionManager" />
+	
+	<!-- 面向切面：aop
+		 将通知织入目标对象，配置切点和切面  -->
+	<aop:config>
+		<!-- execution是处理事务回滚的方法 -->
+		<aop:pointcut expression="execution(* jack.service.impl.*ServiceImpl.*(..))" id="txPc"/>
+		<!-- 主要是对业务处理层进行切割点提示 -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPc"/>
+	</aop:config>
+	
+	
+	<!-- hibernate与spring进行整合，将原本hibernate中需要处理的数据放入spring中 -->
+	<bean name="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<!-- 将我们上面获取到的连接池导入sessionFactory -->
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="hibernateProperties">
+			<props>
+				<!-- 1.本地方言， -->
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<!-- 2.显示sql语句 -->
+				<prop key="hibernate.show_sql">true</prop>
+				<!-- 3.格式化sql语句 -->
+				<prop key="hibernate.format_sql">true</prop>
+				<!-- 4.自动样式，一般为update如果没有会自动创建 -->
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+		
+		<!-- 导入orm元数据 -->
+		<!-- 本地元数据，文件夹，映射到本地的元数据即可,直接导入domain包，他会自己寻找里面的元数据映射文件，不用一一指定 -->
+		<property name="mappingDirectoryLocations" value="classpath:jack/domain"></property>
+	</bean>
+	
+	<!-- 配置Action元数据 
+		可以用注解-->
+	<!-- Action -->
+	<bean name="userAction" class="jack.web.action.UserAction" scope="prototype">
+		<property name="userService" ref="userService"></property>
+	</bean>
+	<bean name="navAction" class="jack.web.action.NavAction" scope="prototype">
+		<property name="navService" ref="navService"></property>
+	</bean>
+	<bean name="productAction" class="jack.web.action.ProductAction" scope="prototype">
+		<property name="productService" ref="productService"></property>
+	</bean>
+	<bean name="cartAction" class="jack.web.action.CartAction" scope="prototype">
+		<property name="cartService" ref="cartService"></property>
+	</bean>
+	<bean name="orderAction" class="jack.web.action.OrderAction" scope="prototype">
+		<property name="orderService" ref="orderService"></property>
+	</bean>
+	<bean name="adminAction" class="jack.web.admin.AdminAction" scope="prototype">
+		<property name="adminService" ref="adminService"></property>
+	</bean>
+	
+	
+	<!-- service -->
+	<bean name="userService" class="jack.service.impl.UserServiceImpl">
+		<property name="userDao" ref="userDao"></property>
+	</bean>
+	<bean name="navService" class="jack.service.impl.NavServiceImpl">
+		<property name="navDao" ref="navDao"></property>
+	</bean>
+	<bean name="productService" class="jack.service.impl.ProductServiceImpl">
+		<property name="productDao" ref="productDao"></property>
+	</bean>
+	<bean name="cartService" class="jack.service.impl.CartServiceImpl">
+		<property name="cartDao" ref="cartDao"></property>
+	</bean>
+	<bean name="orderService" class="jack.service.impl.OrderServiceImpl">
+		<property name="orderDao" ref="orderDao"></property>
+	</bean>
+	<bean name="adminService" class="jack.service.impl.AdminServiceImpl">
+		<property name="adminDao" ref="adminDao"></property>
+	</bean>
+	
+	<!-- dao -->
+	<bean name="userDao" class="jack.dao.impl.UserDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean name="navDao" class="jack.dao.impl.NavDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean name="productDao" class="jack.dao.impl.ProductDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean name="cartDao" class="jack.dao.impl.CartDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean name="orderDao" class="jack.dao.impl.OrderDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean name="adminDao" class="jack.dao.impl.AdminDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+</beans>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="jack.domain" >
+	<class name="User" table="user" >
+		<id name="uid"  >
+			<generator class="uuid"></generator>
+		</id>
+		<property name="username"  ></property>
+		<property name="password"  ></property>
+		<property name="name"  ></property>
+		<property name="email"  ></property>
+		<property name="telephone"  ></property>
+		<property name="birthday"  ></property>
+		<property name="sex"  ></property>
+		<property name="state"  ></property>
+		<property name="code"  ></property>
+	
+	</class>
+</hibernate-mapping>

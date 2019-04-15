@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+	<!-- 设置全局编码格式 -->
+	<constant name="struts.i18n.encoding" value="UTF-8" />
+	<!-- 1.struts2和spring的整合，将struts交给spring托管 -->
+	<constant name="struts.objectFactory" value="spring"></constant>
+	<!-- 一般namespace都设置为/意思是可以该目录下所有的文件都可以访问，不用规定访问路径    
+		extends是继承struts的所有功能，-->
+	<package name="book_shop" namespace="/" extends="struts-default">
+		<!-- 配置Action，自动登录拦截器等 -->
+		<!-- 只有登录后才能进行各种Action访问 -->
+		<interceptors>
+			<interceptor name="loginInterceptor" class="jack.web.interceptor.LoginInterceptor"></interceptor>
+			<!-- 拦截器栈 (自定义的栈)-->
+			<interceptor-stack name="myStack">
+				<!-- 自己注册驱动 -->
+				<interceptor-ref name="loginInterceptor">
+					<!-- 登录和home不受拦截器影响 -->
+					<param name="excludeMethods">home,login,getCategory,register,checkEmail,forgetPassword,updatePassword</param>
+				</interceptor-ref>
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+				<!-- 除自定义外，把其余的拦截器加上 -->
+			</interceptor-stack>
+		</interceptors>
+		
+		<!-- 指定只用自己的栈 -->
+		<default-interceptor-ref name="myStack"></default-interceptor-ref>
+		<!-- 设为全局变量，我们需要进行登录才能操作 -->
+		<global-results>
+			<result name="toLogin" type="redirect">/login.jsp</result>
+		</global-results>
+		
+		<!-- 全局错误处理 -->
+		<global-exception-mappings>	
+			<exception-mapping result="error" exception="java.lang.RuntimeException"></exception-mapping>
+		</global-exception-mappings>
+		
+		<action name="UserAction_*" class="userAction" method="{1}">
+			<result name="toLogin" type="redirect">login.jsp</result>
+			<result name="toHome">index.jsp</result>
+			<result name="error">login.jsp</result>
+			<result name="toForgot">forgotPassword.jsp</result>
+		</action>
+		
+		<action name="NavAction_*" class="navAction" method="{1}"></action>
+		
+		<action name="ProductAction_*" class="productAction" method="{1}">
+			<result name="toHome">index.jsp</result>
+			<result name="toProductList">productList.jsp</result>
+			<result name="toProduct">product.jsp</result>
+		</action>
+		<action name="CartAction_*" class="cartAction" method="{1}">
+			<!-- 需要重定向 -->
+			<result name="toCart" type="redirect">checkout.jsp</result>
+			<result name="toHome">index.jsp</result>
+		</action>
+		
+		<action name="OrderAction_*" class="orderAction" method="{1}">
+			<result name="toOrder" type="redirect">order.jsp</result>
+			<result name="toOrderListAction" type="redirectAction">
+				<param name="namespace">/</param>
+				<param name="actionName">OrderAction_getOrderList</param>
+			</result>
+			<result name="toOrderList">orderList.jsp</result>
+		</action>
+		
+		
+	</package>
+	<package name="admin" namespace="/" extends="struts-default">
+		
+		<action name="AdminAction_*" class="adminAction" method="{1}">
+			<result name="toHome" type="redirect">/admin/index.jsp</result>
+			<result name="toAdminLogin">/admin/login.jsp</result>
+			<result name="toMemberList">/admin/member-list.jsp</result>
+			<result name="toGetUserList" type="redirectAction">
+				<param name="namespace">/</param>
+				<param name="actionName">AdminAction_getUserList</param>
+			</result>
+		</action>
+	</package>
+	
+
+
+
+</struts>
